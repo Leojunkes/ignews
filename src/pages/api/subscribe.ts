@@ -1,7 +1,7 @@
-import { NextApiResponse, NextApiRequest } from 'next'
-import { query as q } from 'faunadb'
-import { stripe } from '../../services/stripe'
-import { getSession } from 'next-auth/client'
+import { NextApiResponse, NextApiRequest } from 'next';
+import { query as q } from 'faunadb';
+import { stripe } from '../../services/stripe';
+import { getSession } from 'next-auth/client';
 import { fauna } from '../../services/fauna';
 
 type User = {
@@ -16,6 +16,7 @@ type User = {
 export default async (req: NextApiRequest, res: NextApiResponse) => {
     if (req.method === 'POST') {
         const session = await getSession({ req })
+        
 
         const user: User = await fauna.query(
             q.Get(
@@ -25,7 +26,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                 )
             )
         )
-
+                    console.log(user)
         let customerId = user.data.stripe_customer_id
 
         if (!customerId) {
@@ -60,7 +61,7 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
             success_url: process.env.STRIPE_SUCCESS_URL,
             cancel_url: process.env.STRIPE_CANCEL_URL
         })
-        return res.status(200).json({ session: stripeCheckoutSession.id })
+        return res.status(200).json({ sessionId: stripeCheckoutSession.id })
     } else {
         res.setHeader('Allow', 'POST')
         res.status(405).end('MEthod not allowed')
