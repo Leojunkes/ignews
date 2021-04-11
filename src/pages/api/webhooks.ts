@@ -50,18 +50,21 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
                     case 'customer.subscriptions.updated':
                     case 'customer.subscriptions.deleted':
 
-                    const subscription = event.data.object as Stripe.Subscription;
+                        const subscription = event.data.object as Stripe.Subscription;
 
-                    await saveSubscription(
-                        subscription.id,
-                        subscription.customer.toString()
-                    )
+                        await saveSubscription(
+                            subscription.id,
+                            subscription.customer.toString(),
+                            type === 'customer.subscriptions.created',
+                        )
                         break;
                     case 'checkout.session.completed':
                         const checkoutSession = event.data.object as Stripe.Checkout.Session
+
                         await saveSubscription(
                             checkoutSession.subscription.toString(),
-                            checkoutSession.customer.toString()
+                            checkoutSession.customer.toString(),
+                            true
                         )
                         break;
                     default:
