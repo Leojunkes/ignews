@@ -1,7 +1,7 @@
 import { Stripe } from 'stripe';
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Readable } from 'stream'
-import { Header } from '../../components/Header';
+
 import { stripe } from '../../services/stripe';
 import { saveSubscription } from './_lib/manageSubscription';
 
