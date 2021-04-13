@@ -1,10 +1,23 @@
 import { GetStaticProps } from 'next';
 import Head from 'next/head';
-import { getPrismicClient } from '../../services/prismic';
+import { client } from '../../services/prismic';
 import styles from './styles.module.scss';
 import Prismic from '@prismicio/client';
+import { RichText } from 'prismic-dom';
 
-export default function Posts() {
+
+type Post = {
+  slug: string;
+  title: string;
+  textSummary: string;
+  updateAt: string;
+};
+
+interface PostProps {
+  posts: Post[];
+}
+
+export default function Posts({ posts }: PostProps) {
   return (
     <>
       <Head>
@@ -13,47 +26,13 @@ export default function Posts() {
 
       <main className={styles.container}>
         <div className={styles.posts}>
-          <a href="#">
-            <time>12 de abril de 2021</time>
-            <strong>
-              Psyonix Announces Rocket League® Sideswipe, A New Mobile Game
-              Coming Later This Year
-            </strong>
-            <p>
-              Psyonix, the San Diego video game developer that joined the Epic
-              Games family in 2019, today announced Rocket League Sideswipe, a
-              brand-new, standalone Rocket League game for mobile devices coming
-              later this year!
-            </p>
-          </a>
-
-          <a href="#">
-            <time>12 de abril de 2021</time>
-            <strong>
-              Psyonix Announces Rocket League® Sideswipe, A New Mobile Game
-              Coming Later This Year
-            </strong>
-            <p>
-              Psyonix, the San Diego video game developer that joined the Epic
-              Games family in 2019, today announced Rocket League Sideswipe, a
-              brand-new, standalone Rocket League game for mobile devices coming
-              later this year!
-            </p>
-          </a>
-
-          <a href="#">
-            <time>12 de abril de 2021</time>
-            <strong>
-              Psyonix Announces Rocket League® Sideswipe, A New Mobile Game
-              Coming Later This Year
-            </strong>
-            <p>
-              Psyonix, the San Diego video game developer that joined the Epic
-              Games family in 2019, today announced Rocket League Sideswipe, a
-              brand-new, standalone Rocket League game for mobile devices coming
-              later this year!
-            </p>
-          </a>
+          {posts.map((post) => (
+            <a key={post.slug} href="#">
+              <time>{post.updateAt}</time>
+              <strong>{post.title}</strong>
+              <p>{post.textSummary}</p>
+            </a>
+          ))}
         </div>
       </main>
     </>
@@ -61,18 +40,34 @@ export default function Posts() {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const prismic = getPrismicClient();
-  const response = await prismic.query([
-    Prismic.Predicates.at('document.type', 'post')
-  ],{
+  const prismic = client;
+  const response = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'post')],
+    {
       fetch: ['publication.title', 'publication.content'],
-      pageSize:100,
-    });
+      pageSize: 100,
+    }
+  );
 
+  const posts = response.results.map((post) => {
+    return {
+      slug: post.uid,
+      title: RichText.asText(post.data.title),
+      textSummary:
+        post.data.content.find((content) => content.type === 'paragraph')
+          ?.text ?? '',
+      updateAt: new Date(post.first_publication_date).toLocaleDateString(
+        'pt-BR',
+        {
+          day: '2-digit',
+          month: '2-digit',
+          year: '2-digit',
+        }
+      ),
+    };
+  });
 
-  console.log(response)
-  
   return {
-    props: {},
+    props: { posts },
   };
 };
