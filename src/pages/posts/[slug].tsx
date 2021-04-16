@@ -1,38 +1,39 @@
-
-import { GetServerSideProps,  } from 'next';
+import { GetServerSideProps } from 'next';
 import { getSession } from 'next-auth/client';
 import Head from 'next/head';
 
 import { RichText } from 'prismic-dom';
-import posts from '.';
-import { getPrismicClient} from '../../services/prismic';
+import styles from '../posts/post.module.scss';
 
-
+import { getPrismicClient } from '../../services/prismic';
 
 interface PostProps {
-    post:{
-        slug: string;
-        title: string;
-        content: string;
-        updateAt: string;
-    }
- 
+  post: {
+    slug: string;
+    title: string;
+    content: string;
+    updateAt: string;
+  };
 }
 
-export default function Post({post}:PostProps) {
-  return(
-      <>
-        <Head>
-            <title>{post.title}</title>
-        </Head>
-        <main>
-            <article>
-                <h1>{post.title}</h1>
-            <time>{post.updateAt}</time>
-            </article>
-        </main>
-      </>
-  )
+export default function Post({ post }: PostProps) {
+  return (
+    <>
+      <Head>
+        <title>{post.title} | Ignews</title>
+      </Head>
+      <main className={styles.container}>
+        <article className={styles.post}>
+          <h1>{post.title}</h1>
+          <time>{post.updateAt}</time>
+          <div
+            className={styles.postContent}
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        </article>
+      </main>
+    </>
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async ({
@@ -41,8 +42,19 @@ export const getServerSideProps: GetServerSideProps = async ({
 }) => {
   const session = await getSession({ req });
   const { slug } = params;
-  
-  const prismic =getPrismicClient(req);
+
+  if(!session?.activeSubscription){
+    return{
+      redirect:{ 
+        destination:'/',
+        permanent:false,
+      }
+    }
+  }
+
+  console.log(session)
+
+  const prismic = getPrismicClient(req);
   const response = await prismic.getByUID('post', String(slug), {});
 
   const post = {
@@ -50,10 +62,10 @@ export const getServerSideProps: GetServerSideProps = async ({
     title: RichText.asText(response.data.title),
     content: RichText.asHtml(response.data.content),
     updateAt: new Date(response.last_publication_date).toLocaleDateString(
-      'pt-BR',
+      "pt-BR",
       {
         day: '2-digit',
-        month: 'long',
+        month: '2-digit',
         year: 'numeric',
       }
     ),
