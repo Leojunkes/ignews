@@ -1,12 +1,11 @@
-
 import Head from 'next/head';
 
 import { RichText } from 'prismic-dom';
 import styles from '../post.module.scss';
 
 import { getPrismicClient } from '../../../services/prismic';
-import  Link  from 'next/link';
-import { GetStaticProps } from 'next';
+import Link from 'next/link';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { useSession } from 'next-auth/client';
 import { useRouter } from 'next/dist/client/router';
 import { useEffect } from 'react';
@@ -21,14 +20,14 @@ interface PostPreviewProps {
 }
 
 export default function PostPreview({ post }: PostPreviewProps) {
-  const [session] = useSession()
-  const router = useRouter()
+  const [session] = useSession();
+  const router = useRouter();
 
-  useEffect(()=>{
-    if(session?.activeSubscription){
-      router.push(`/posts/${post.slug}`)
+  useEffect(() => {
+    if (session) {
+      router.push(`/posts/${post.slug}`);
     }
-  },[session])
+  }, [session]);
   return (
     <>
       <Head>
@@ -53,7 +52,7 @@ export default function PostPreview({ post }: PostPreviewProps) {
     </>
   );
 }
-export const getStaticPaths = () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   return {
     paths: [],
     fallback: 'blocking',
@@ -69,7 +68,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const post = {
     slug,
     title: RichText.asText(response.data.title),
-    content: RichText.asHtml(response.data.content.splice(0,3)),
+    content: RichText.asHtml(response.data.content.splice(0, 3)),
     updateAt: new Date(response.last_publication_date).toLocaleDateString(
       'pt-BR',
       {
@@ -81,5 +80,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   };
   return {
     props: { post },
+    redirect: 60 * 30, //30 minutos
   };
 };
