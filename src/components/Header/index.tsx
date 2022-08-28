@@ -10,15 +10,15 @@ export function Header() {
       <div className={styles.headerContent}>
         <img src="/images/logo.svg" alt="ig.news" />
         <nav>
-          <Link href="/" >
-            <a className={asPath==='/'?styles.active:''}>
+          
+            <a href='/' className={asPath==='/'?styles.active:''}>
               Home
             </a>
-          </Link>
+          
 
-          <Link href="/posts">
-            <a className={asPath==='/posts'?styles.active:''}>Post</a>
-          </Link>
+          
+            <a href='/posts' className={asPath==='/posts'?styles.active:''}>Post</a>
+          
         </nav>
         <SignInButton />
       </div>
